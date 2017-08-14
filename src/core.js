@@ -42,7 +42,7 @@ export function addFilterToJquery($ajaxCache) {
                             if (typeof cacheValidateFun === 'function') {
                                 if (cacheValidateFun.call(null, data, options)) {
                                     // 业务逻辑的判断这个请求是否真正成功的请求。
-                                    storage.set(cacheKey, LZString.compressToUTF16(data), {
+                                    storage.set(cacheKey, data, {
                                         exp: exp
                                     });
                                 }
@@ -87,7 +87,6 @@ export function addFilterToJquery($ajaxCache) {
                 value = storage.get(cacheKey);
 
             if (value && ajaxCacheOptions.forceRefresh !== true) {
-                value = LZString.decompressFromUTF16(value);
                 console.info('read from $ajaxCache:', value);
                 return {
                     send: function(headers, completeCallback) {

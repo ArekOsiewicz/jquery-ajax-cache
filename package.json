@@ -27,7 +27,7 @@
     "mocha": "^2.3.4",
     "sinon": "^1.17.2",
     "sinon-chai": "^2.8.0",
-    "web-storage-cache": "1.0.3",
+    "web-storage-cache": "git://github.com/ArekOsiewicz/web-storage-cache#master",
     "webpack": "^1.12.9"
   }
 }
