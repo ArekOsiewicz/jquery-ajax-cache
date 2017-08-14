@@ -8,10 +8,10 @@ export function addFilterToJquery($ajaxCache) {
 
         let ajaxCacheOptions = options.ajaxCache;
 
-        if(ajaxCacheOptions) {
+        if (ajaxCacheOptions) {
             var storage = cacheProxy.getStorage(ajaxCacheOptions.storageType);
 
-            if(!storage.isSupported()) {
+            if (!storage.isSupported()) {
                 return;
             }
 
@@ -20,12 +20,12 @@ export function addFilterToJquery($ajaxCache) {
                 var value = storage.get(cacheKey);
 
                 // force reflash cache
-                if(ajaxCacheOptions.forceRefresh === true) {
+                if (ajaxCacheOptions.forceRefresh === true) {
                     storage.delete(cacheKey);
                     value = null;
                 }
 
-                if (!value){
+                if (!value) {
                     // If it not in the cache, we store the data, add success callback - normal callback will proceed
                     var realsuccess;
                     if (options.success) {
@@ -34,21 +34,22 @@ export function addFilterToJquery($ajaxCache) {
                     options.success = function(data) {
 
                         var exp = cacheProxy.defaultTimeout;
-                        if(typeof ajaxCacheOptions.timeout === 'number') {
+                        if (typeof ajaxCacheOptions.timeout === 'number') {
                             exp = ajaxCacheOptions.timeout;
                         }
                         try {
                             let cacheValidateFun = ajaxCacheOptions.cacheValidate || cacheProxy.getCacheValidateFun();
-                            if(typeof cacheValidateFun === 'function') {
-                                if(cacheValidateFun.call(null, data, options)) {
+                            if (typeof cacheValidateFun === 'function') {
+                                if (cacheValidateFun.call(null, data, options)) {
                                     // 业务逻辑的判断这个请求是否真正成功的请求。
-                                    storage.set(cacheKey, data, {exp: exp});
+                                    storage.set(cacheKey, LZString.compressToUTF16(data), {
+                                        exp: exp
+                                    });
                                 }
-                            }
-                            else {
+                            } else {
                                 console.error('cacheValidate must be a Function');
                             }
-                        } catch(e){
+                        } catch (e) {
                             console.error(e);
                         }
                         if (realsuccess) realsuccess(data);
@@ -65,27 +66,28 @@ export function addFilterToJquery($ajaxCache) {
     });
 
     /**
-    * This function performs the fetch from cache portion of the functionality needed to cache ajax
-    * calls and still fulfill the jqXHR Deferred Promise interface.
-    * See also $.ajaxPrefilter
-    * @method $.ajaxTransport
-    * @params options {Object} Options for the ajax call, modified with ajax standard settings
-    */
-    $.ajaxTransport("+*", function(options, originalOptions, jqXHR){
+     * This function performs the fetch from cache portion of the functionality needed to cache ajax
+     * calls and still fulfill the jqXHR Deferred Promise interface.
+     * See also $.ajaxPrefilter
+     * @method $.ajaxTransport
+     * @params options {Object} Options for the ajax call, modified with ajax standard settings
+     */
+    $.ajaxTransport("+*", function(options, originalOptions, jqXHR) {
         let cacheProxy = $ajaxCache.getCacheProxy();
         let ajaxCacheOptions = options.ajaxCache;
 
         if (ajaxCacheOptions) {
             var storage = cacheProxy.getStorage(ajaxCacheOptions.storageType);
 
-            if(!storage.isSupported()) {
+            if (!storage.isSupported()) {
                 return;
             }
 
             var cacheKey = cacheProxy.genCacheKey(options, originalOptions, ajaxCacheOptions.preGenCacheKey),
-            value = storage.get(cacheKey);
+                value = storage.get(cacheKey);
 
-            if (value && ajaxCacheOptions.forceRefresh !== true){
+            if (value && ajaxCacheOptions.forceRefresh !== true) {
+                value = LZString.decompressFromUTF16(value);
                 console.info('read from $ajaxCache:', value);
                 return {
                     send: function(headers, completeCallback) {
