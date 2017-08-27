@@ -42,9 +42,18 @@ export function addFilterToJquery($ajaxCache) {
                             if (typeof cacheValidateFun === 'function') {
                                 if (cacheValidateFun.call(null, data, options)) {
                                     // 业务逻辑的判断这个请求是否真正成功的请求。
-                                    storage.set(cacheKey, data, {
-                                        exp: exp
+                                    LZUTF8.compressAsync(JSON.stringify(data), {
+                                        outputEncoding: "BinaryString"
+                                    }, function(result, error) {
+                                        if (error === undefined) {
+                                            console.log("Data successfully compressed and encoded to " + result.length + " characters");
+                                            storage.set(cacheKey, result, {
+                                                exp: exp
+                                            });
+                                        } else
+                                            console.log("Compression error: " + error.message);
                                     });
+
                                 }
                             } else {
                                 console.error('cacheValidate must be a Function');
@@ -90,9 +99,19 @@ export function addFilterToJquery($ajaxCache) {
                 console.info('read from $ajaxCache:', value);
                 return {
                     send: function(headers, completeCallback) {
-                        var response = {};
-                        response['json'] = value;
-                        completeCallback(200, 'success', response, '');
+                        LZUTF8.decompressAsync(input, {
+                            inputEncoding: "BinaryString",
+                            outputEncoding: "String"
+                        }, function(result, error) {
+                            if (error === undefined) {
+                                console.log("Data successfully decompressed to " + result.length + " UTF-8 bytes");
+                                var response = {};
+                                response['json'] = JSON.parse(result);
+                                completeCallback(200, 'success', response, '');
+                            } else
+                                console.log("Decompression error: " + error.message);
+                        });
+
                     },
                     abort: function() {
                         console.log("Aborted ajax transport for json cache.");
