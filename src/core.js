@@ -96,10 +96,10 @@ export function addFilterToJquery($ajaxCache) {
                 value = storage.get(cacheKey);
 
             if (value && ajaxCacheOptions.forceRefresh !== true) {
-                console.info('read from $ajaxCache:', value);
+
                 return {
                     send: function(headers, completeCallback) {
-                        LZUTF8.decompressAsync(input, {
+                        LZUTF8.decompressAsync(value, {
                             inputEncoding: "BinaryString",
                             outputEncoding: "String"
                         }, function(result, error) {
